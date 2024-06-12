@@ -2306,7 +2306,7 @@ func (f *Fpdf) WriteLinkID(h float64, displayStr string, linkID int) {
 //
 // width indicates the width of the box the text will be drawn in. This is in
 // the unit of measure specified in New(). If it is set to 0, the bounding box
-//of the page will be taken (pageWidth - leftMargin - rightMargin).
+// of the page will be taken (pageWidth - leftMargin - rightMargin).
 //
 // lineHeight indicates the line height in the unit of measure specified in
 // New().
@@ -3953,5 +3953,18 @@ func (f *Fpdf) arc(x, y, rx, ry, degRotate, degStart, degEnd float64,
 	}
 	if degRotate != 0 {
 		f.out("Q")
+	}
+}
+
+// SetFontStyle sets the style of the current font. See also SetFont()
+func (f *Fpdf) SetFontStyle(styleStr string) {
+	f.SetFont(f.fontFamily, styleStr, f.fontSizePt)
+}
+
+// SetPage sets the current page to that of a valid page in the PDF document.
+// pageNum is one-based. The SetPage() example demonstrates this method.
+func (f *Fpdf) SetPage(pageNum int) {
+	if (pageNum > 0) && (pageNum < len(f.pages)) {
+		f.page = pageNum
 	}
 }

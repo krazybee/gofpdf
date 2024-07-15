@@ -3968,3 +3968,82 @@ func (f *Fpdf) SetPage(pageNum int) {
 		f.page = pageNum
 	}
 }
+
+func (f *Fpdf) WriteWithHighlight(h float64, txtStr string) {
+	f.writeWithHighlight(h, txtStr, 0, "")
+}
+
+// Output text in flowing mode
+func (f *Fpdf) writeWithHighlight(h float64, txtStr string, link int, linkStr string) {
+	// dbg("Write")
+	cw := &f.currentFont.Cw
+	w := f.w - f.rMargin - f.x
+	wmax := (w - 2*f.cMargin) * 1000 / f.fontSize
+	s := strings.Replace(txtStr, "\r", "", -1)
+	nb := len(s)
+	sep := -1
+	i := 0
+	j := 0
+	l := 0.0
+	nl := 1
+	for i < nb {
+		// Get next character
+		c := []byte(s)[i]
+		if c == '\n' {
+			// Explicit line break
+			f.CellFormat(w, h, s[j:i], "", 2, "", true, link, linkStr)
+			i++
+			sep = -1
+			j = i
+			l = 0.0
+			if nl == 1 {
+				f.x = f.lMargin
+				w = f.w - f.rMargin - f.x
+				wmax = (w - 2*f.cMargin) * 1000 / f.fontSize
+			}
+			nl++
+			continue
+		}
+		if c == ' ' {
+			sep = i
+		}
+		l += float64(cw[c])
+		if l > wmax {
+			// Automatic line break
+			if sep == -1 {
+				if f.x > f.lMargin {
+					// Move to next line
+					f.x = f.lMargin
+					f.y += h
+					w = f.w - f.rMargin - f.x
+					wmax = (w - 2*f.cMargin) * 1000 / f.fontSize
+					i++
+					nl++
+					continue
+				}
+				if i == j {
+					i++
+				}
+				f.CellFormat(w, h, s[j:i], "", 2, "", true, link, linkStr)
+			} else {
+				f.CellFormat(w, h, s[j:sep], "", 2, "", true, link, linkStr)
+				i = sep + 1
+			}
+			sep = -1
+			j = i
+			l = 0.0
+			if nl == 1 {
+				f.x = f.lMargin
+				w = f.w - f.rMargin - f.x
+				wmax = (w - 2*f.cMargin) * 1000 / f.fontSize
+			}
+			nl++
+		} else {
+			i++
+		}
+	}
+	// Last chunk
+	if i != j {
+		f.CellFormat(l/1000*f.fontSize, h, s[j:], "", 0, "", true, link, linkStr)
+	}
+}
